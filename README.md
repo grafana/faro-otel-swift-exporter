@@ -1,4 +1,4 @@
-# Faro Exporter
+# Faro OpenTelemetry-Swift Exporter
 
 <img src="./docs/assets/faro_logo.png" alt="Grafana Faro logo" width="300" />
 
