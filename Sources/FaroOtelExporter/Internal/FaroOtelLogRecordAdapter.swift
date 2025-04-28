@@ -49,13 +49,6 @@ class FaroOtelLogRecordAdapter {
         let userName = logRecord.attributes["username"]?.description ?? ""
         let userEmail = logRecord.attributes["user_email"]?.description ?? ""
 
-        // Extract other attributes, excluding the ones used for specific FaroUser fields
-        let userSpecificKeys = Set(["user_id", "username", "user_email"])
-        var otherAttributes = [String: String]()
-        for (key, value) in logRecord.attributes where !userSpecificKeys.contains(key) {
-            otherAttributes[key] = value.description
-        }
-
         // Return nil only if all specific fields are empty
         if userId.isEmpty, userName.isEmpty, userEmail.isEmpty {
             return nil
@@ -65,7 +58,7 @@ class FaroOtelLogRecordAdapter {
             id: userId,
             username: userName,
             email: userEmail,
-            attributes: otherAttributes.isEmpty ? [:] : otherAttributes // Use empty if no others
+            attributes: nil
         )
     }
 
@@ -73,15 +66,6 @@ class FaroOtelLogRecordAdapter {
     private static func toFaroEvent(logRecord: ReadableLogRecord) -> FaroEvent {
         let dateTimestamp = logRecord.timestamp
         let isoTimestamp = dateProvider.iso8601String(from: dateTimestamp)
-
-        // Extract relevant user attributes
-        let userAttributeKeys = ["username", "user_id", "user_email"]
-        var eventAttributes = [String: String]()
-        for key in userAttributeKeys {
-            if let value = logRecord.attributes[key] {
-                eventAttributes[key] = value.description
-            }
-        }
 
         // Add trace context if available
         let traceContext: FaroTraceContext?
@@ -94,8 +78,8 @@ class FaroOtelLogRecordAdapter {
         }
 
         return FaroEvent(
-            name: "user_changed", // Specific event name
-            attributes: eventAttributes.isEmpty ? [:] : eventAttributes, // Use empty dict if no attrs found
+            name: "faro_internal_user_updated", // Specific event name
+            attributes: [:],
             timestamp: isoTimestamp,
             dateTimestamp: dateTimestamp,
             trace: traceContext

@@ -204,9 +204,9 @@ struct FaroUser: Encodable {
     let id: String?
     let username: String?
     let email: String?
-    let attributes: [String: String]
+    let attributes: [String: String]?
 
-    init(id: String, username: String, email: String, attributes: [String: String]) {
+    init(id: String, username: String, email: String, attributes: [String: String]?) {
         self.id = id
         self.username = username
         self.email = email
