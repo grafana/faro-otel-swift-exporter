@@ -21,6 +21,15 @@ jobs:
         with:
           xcode-version: latest
 
+      - name: Install Linters/Formatters
+        run: brew install swiftlint swiftformat
+
+      - name: Check Formatting
+        run: swiftformat . --lint
+
+      - name: Run Linter
+        run: swiftlint lint --strict # --strict makes warnings fail the build
+
       - name: Build Swift package
         run: swift build
 

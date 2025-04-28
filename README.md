@@ -62,3 +62,7 @@ let loggerProvider = LoggerProviderBuilder()
 - [Grafana Faro Documentation](https://grafana.com/oss/faro/)
 - [Grafana Alloy Setup Guide](https://grafana.com/docs/alloy/latest/set-up/)
 - [Frontend Monitoring Dashboard](https://grafana.com/grafana/dashboards/17766-frontend-monitoring/)
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to this project, including setting up your development environment and guidelines for code style.
