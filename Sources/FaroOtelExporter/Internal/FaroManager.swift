@@ -17,6 +17,8 @@ final class FaroManager {
     private var pendingEvents: [FaroEvent] = []
     private var pendingSpans: [SpanData] = []
 
+    private var currentUser: FaroUser?
+
     init(
         appInfo: FaroAppInfo,
         transport: FaroTransportable,
@@ -34,7 +36,7 @@ final class FaroManager {
         listenForSessionChanges()
     }
 
-    func pushEvents(events: [FaroEvent]) {
+    func pushEvents(_ events: [FaroEvent]) {
         telemetryDataQueue.sync {
             pendingEvents.append(contentsOf: events)
         }
@@ -55,9 +57,15 @@ final class FaroManager {
         scheduleFlush()
     }
 
+    func setUser(_ user: FaroUser?) {
+        telemetryDataQueue.sync {
+            self.currentUser = user
+        }
+    }
+
     private func sendSessionStartEvent() {
         let sessionStartEvent = FaroEvent.create(name: "session_start")
-        pushEvents(events: [sessionStartEvent])
+        pushEvents([sessionStartEvent])
     }
 
     private func scheduleFlush() {
@@ -74,11 +82,13 @@ final class FaroManager {
         var sendingLogs: [FaroLog] = []
         var sendingEvents: [FaroEvent] = []
         var sendingSpans: [SpanData] = []
+        var sendingUser: FaroUser?
 
         telemetryDataQueue.sync {
             sendingLogs = pendingLogs
             sendingEvents = pendingEvents
             sendingSpans = pendingSpans
+            sendingUser = currentUser
             pendingLogs = []
             pendingEvents = []
             pendingSpans = []
@@ -88,7 +98,7 @@ final class FaroManager {
         }
 
         if !sendingLogs.isEmpty || !sendingEvents.isEmpty || !sendingSpans.isEmpty {
-            let payload = getPayload(logs: sendingLogs, events: sendingEvents, spans: sendingSpans)
+            let payload = getPayload(logs: sendingLogs, events: sendingEvents, spans: sendingSpans, user: sendingUser)
             transport.send(payload) { [weak self] result in
                 switch result {
                 case .success:
@@ -115,7 +125,7 @@ final class FaroManager {
         return allTimestamps.max()
     }
 
-    private func getPayload(logs: [FaroLog], events: [FaroEvent], spans: [SpanData] = []) -> FaroPayload {
+    private func getPayload(logs: [FaroLog], events: [FaroEvent], spans: [SpanData] = [], user: FaroUser?) -> FaroPayload {
         if let latestTimestamp = findLatestTimestamp(logs: logs, events: events, spans: spans) {
             sessionManager.updateLastActivity(date: latestTimestamp)
         }
@@ -131,7 +141,7 @@ final class FaroManager {
                 sdk: FaroSdkInfo(name: "opentelemetry-swift-faro-exporter", version: "1.3.5", integrations: []),
                 app: appInfo,
                 session: session,
-                user: nil,
+                user: user,
                 view: FaroView(name: "default")
             ),
             traces: traces,

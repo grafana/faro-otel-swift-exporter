@@ -5,6 +5,7 @@ import OpenTelemetryApi
 @testable import OpenTelemetrySdk
 import XCTest
 
+// swiftlint:disable:next type_body_length
 final class FaroManagerTests: XCTestCase {
     var mockTransport: MockFaroTransport!
     var mockSessionManager: MockFaroSessionManager!
@@ -80,7 +81,7 @@ final class FaroManagerTests: XCTestCase {
         mockTransport.sendExpectation = expectation
 
         // Push events
-        sut.pushEvents(events: [event1, event2])
+        sut.pushEvents([event1, event2])
 
         // Wait for the send operation to complete
         wait(for: [expectation], timeout: 3.0)
@@ -191,7 +192,7 @@ final class FaroManagerTests: XCTestCase {
         mockTransport.sendExpectation = expectation
 
         // Push different telemetry types
-        sut.pushEvents(events: [event])
+        sut.pushEvents([event])
         sut.pushLogs([log])
         sut.pushSpans([span])
 
@@ -248,7 +249,7 @@ final class FaroManagerTests: XCTestCase {
 
         // Create and push a test event
         let event = createTestEvent(name: "test_event")
-        sut.pushEvents(events: [event])
+        sut.pushEvents([event])
 
         // Wait for the first send operation to complete (which will fail)
         wait(for: [firstSendExpectation], timeout: 3.0)
@@ -265,7 +266,7 @@ final class FaroManagerTests: XCTestCase {
 
         // Push another event to trigger another flush
         let event2 = createTestEvent(name: "second_event")
-        sut.pushEvents(events: [event2])
+        sut.pushEvents([event2])
 
         // Wait for the second send operation to complete (which should succeed)
         wait(for: [secondSendExpectation], timeout: 3.0)
@@ -331,6 +332,82 @@ final class FaroManagerTests: XCTestCase {
         // Verify there's a session_start event in the latest payload
         let sessionStartEvents = latestPayload.events?.filter { $0.name == "session_start" } ?? []
         XCTAssertFalse(sessionStartEvents.isEmpty, "Latest payload should contain a session_start event")
+    }
+
+    // MARK: - User Tests
+
+    func testSetUser() {
+        // Clear initial session start event
+        mockTransport.sentPayloads = []
+
+        // Create a test user
+        let testUser = FaroUser(
+            id: "test-user-id",
+            username: "testuser",
+            email: "test@example.com",
+            attributes: ["role": "tester"]
+        )
+
+        // Set up expectation for the send operation
+        let expectation = XCTestExpectation(description: "Wait for flush")
+        mockTransport.sendExpectation = expectation
+
+        // Set user and push a log to trigger flush
+        sut.setUser(testUser)
+        sut.pushLogs([createTestLog(message: "Test log with user")])
+
+        // Wait for the send operation to complete
+        wait(for: [expectation], timeout: 3.0)
+
+        // Verify the user was included in the meta data
+        XCTAssertEqual(mockTransport.sentPayloads.count, 1, "Should have sent payload")
+
+        let payload = mockTransport.sentPayloads[0]
+        XCTAssertNotNil(payload.meta.user, "User should not be nil in meta")
+        XCTAssertEqual(payload.meta.user?.id, "test-user-id", "User ID should match")
+        XCTAssertEqual(payload.meta.user?.username, "testuser", "Username should match")
+        XCTAssertEqual(payload.meta.user?.email, "test@example.com", "Email should match")
+        XCTAssertEqual(payload.meta.user?.attributes["role"], "tester", "User attributes should match")
+    }
+
+    func testSetUserToNil() {
+        // Clear initial session start event
+        mockTransport.sentPayloads = []
+
+        // First set a user
+        let testUser = FaroUser(
+            id: "test-user-id",
+            username: "testuser",
+            email: "test@example.com",
+            attributes: [:]
+        )
+
+        // Set up first expectation
+        let expectation1 = XCTestExpectation(description: "Wait for first flush")
+        mockTransport.sendExpectation = expectation1
+
+        // Set user and push a log to trigger flush
+        sut.setUser(testUser)
+        sut.pushLogs([createTestLog(message: "Test log with user")])
+
+        // Wait for the first send operation to complete
+        wait(for: [expectation1], timeout: 3.0)
+
+        // Then set user to nil
+        let expectation2 = XCTestExpectation(description: "Wait for second flush")
+        mockTransport.sendExpectation = expectation2
+
+        sut.setUser(nil)
+        sut.pushLogs([createTestLog(message: "Test log without user")])
+
+        // Wait for the second send operation to complete
+        wait(for: [expectation2], timeout: 3.0)
+
+        // Verify the user was removed in the second payload
+        XCTAssertEqual(mockTransport.sentPayloads.count, 2, "Should have sent two payloads")
+
+        let payload = mockTransport.sentPayloads[1]
+        XCTAssertNil(payload.meta.user, "User should be nil in meta")
     }
 
     // MARK: - Test Helpers

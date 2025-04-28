@@ -77,7 +77,7 @@ public final class FaroExporter: SpanExporter, LogRecordExporter {
         }
 
         if !events.isEmpty {
-            faroManager.pushEvents(events: events)
+            faroManager.pushEvents(events)
         }
 
         return .success
@@ -92,8 +92,10 @@ public final class FaroExporter: SpanExporter, LogRecordExporter {
     // MARK: - LogRecordExporter Implementation
 
     public func export(logRecords: [ReadableLogRecord], explicitTimeout: TimeInterval?) -> ExportResult {
-        let faroLogs = FaroLogAdapter.toFaroLogs(logRecords: logRecords)
-        faroManager.pushLogs(faroLogs)
+        let faroTelemetryInput = FaroOtelLogRecordAdapter.adaptRecords(logRecords: logRecords)
+        faroManager.setUser(faroTelemetryInput.user)
+        faroManager.pushLogs(faroTelemetryInput.logs)
+        faroManager.pushEvents(faroTelemetryInput.events)
         return .success
     }
 

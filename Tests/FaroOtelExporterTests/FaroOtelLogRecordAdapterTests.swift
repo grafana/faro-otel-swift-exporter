@@ -4,7 +4,7 @@ import OpenTelemetryApi
 import OpenTelemetrySdk
 import XCTest
 
-final class FaroLogAdapterTests: XCTestCase {
+final class FaroOtelLogRecordAdapterTests: XCTestCase {
     var mockDateProvider: MockDateProvider!
 
     // Test date: February 13, 2009 23:31:30 UTC
@@ -26,11 +26,11 @@ final class FaroLogAdapterTests: XCTestCase {
     override func setUp() {
         super.setUp()
         mockDateProvider = MockDateProvider(initialDate: testDate)
-        FaroLogAdapter.dateProvider = mockDateProvider
+        FaroOtelLogRecordAdapter.dateProvider = mockDateProvider
     }
 
     override func tearDown() {
-        FaroLogAdapter.dateProvider = DateProvider()
+        FaroOtelLogRecordAdapter.dateProvider = DateProvider()
         super.tearDown()
     }
 
@@ -45,11 +45,14 @@ final class FaroLogAdapterTests: XCTestCase {
         )
 
         // When
-        let faroLogs = FaroLogAdapter.toFaroLogs(logRecords: [logRecord])
+        let result = FaroOtelLogRecordAdapter.adaptRecords(logRecords: [logRecord])
 
         // Then
-        XCTAssertEqual(faroLogs.count, 1)
-        let faroLog = faroLogs[0]
+        XCTAssertEqual(result.logs.count, 1)
+        XCTAssertEqual(result.events.count, 0)
+        XCTAssertNil(result.user)
+
+        let faroLog = result.logs[0]
         XCTAssertEqual(faroLog.timestamp, testISOString)
         XCTAssertEqual(faroLog.dateTimestamp, testDate)
         XCTAssertEqual(faroLog.message, "Test message")
@@ -78,8 +81,8 @@ final class FaroLogAdapterTests: XCTestCase {
                 attributes: [:]
             )
 
-            let faroLogs = FaroLogAdapter.toFaroLogs(logRecords: [logRecord])
-            XCTAssertEqual(faroLogs[0].level, expectedLevel, "Failed for severity \(severity)")
+            let result = FaroOtelLogRecordAdapter.adaptRecords(logRecords: [logRecord])
+            XCTAssertEqual(result.logs[0].level, expectedLevel, "Failed for severity \(severity)")
         }
     }
 
@@ -101,11 +104,11 @@ final class FaroLogAdapterTests: XCTestCase {
         )
 
         // When
-        let faroLogs = FaroLogAdapter.toFaroLogs(logRecords: [logRecord])
+        let result = FaroOtelLogRecordAdapter.adaptRecords(logRecords: [logRecord])
 
         // Then
-        XCTAssertEqual(faroLogs.count, 1)
-        let faroLog = faroLogs[0]
+        XCTAssertEqual(result.logs.count, 1)
+        let faroLog = result.logs[0]
         XCTAssertNotNil(faroLog.context)
         XCTAssertEqual(faroLog.context?["string"], "value")
         XCTAssertEqual(faroLog.context?["int"], "42")
@@ -134,11 +137,11 @@ final class FaroLogAdapterTests: XCTestCase {
         )
 
         // When
-        let faroLogs = FaroLogAdapter.toFaroLogs(logRecords: [logRecord])
+        let result = FaroOtelLogRecordAdapter.adaptRecords(logRecords: [logRecord])
 
         // Then
-        XCTAssertEqual(faroLogs.count, 1)
-        let faroLog = faroLogs[0]
+        XCTAssertEqual(result.logs.count, 1)
+        let faroLog = result.logs[0]
         XCTAssertNotNil(faroLog.trace)
         XCTAssertEqual(faroLog.trace?.traceId, traceId.hexString)
         XCTAssertEqual(faroLog.trace?.spanId, spanId.hexString)
@@ -166,14 +169,14 @@ final class FaroLogAdapterTests: XCTestCase {
         ]
 
         // When
-        let faroLogs = FaroLogAdapter.toFaroLogs(logRecords: logRecords)
+        let result = FaroOtelLogRecordAdapter.adaptRecords(logRecords: logRecords)
 
         // Then
-        XCTAssertEqual(faroLogs.count, 2)
-        XCTAssertEqual(faroLogs[0].message, "Message 1")
-        XCTAssertEqual(faroLogs[0].level, FaroLogLevel.info)
-        XCTAssertEqual(faroLogs[1].message, "Message 2")
-        XCTAssertEqual(faroLogs[1].level, FaroLogLevel.error)
+        XCTAssertEqual(result.logs.count, 2)
+        XCTAssertEqual(result.logs[0].message, "Message 1")
+        XCTAssertEqual(result.logs[0].level, FaroLogLevel.info)
+        XCTAssertEqual(result.logs[1].message, "Message 2")
+        XCTAssertEqual(result.logs[1].level, FaroLogLevel.error)
     }
 
     func testEmptyBody() {
@@ -187,10 +190,87 @@ final class FaroLogAdapterTests: XCTestCase {
         )
 
         // When
-        let faroLogs = FaroLogAdapter.toFaroLogs(logRecords: [logRecord])
+        let result = FaroOtelLogRecordAdapter.adaptRecords(logRecords: [logRecord])
 
         // Then
-        XCTAssertEqual(faroLogs.count, 1)
-        XCTAssertEqual(faroLogs[0].message, "")
+        XCTAssertEqual(result.logs.count, 1)
+        XCTAssertEqual(result.logs[0].message, "")
+    }
+
+    func testChangeUserLogCreatesEvent() {
+        // Given
+        let logRecord = ReadableLogRecord(
+            resource: Resource(),
+            instrumentationScopeInfo: InstrumentationScopeInfo(name: "test"),
+            timestamp: testDate,
+            body: AttributeValue.string("change_user"),
+            attributes: [
+                "username": AttributeValue.string("testuser"),
+                "user_id": AttributeValue.string("12345"),
+                "user_email": AttributeValue.string("user@example.com"),
+            ]
+        )
+
+        // When
+        let result = FaroOtelLogRecordAdapter.adaptRecords(logRecords: [logRecord])
+
+        // Then
+        XCTAssertEqual(result.logs.count, 0, "Should not create logs for change_user")
+        XCTAssertEqual(result.events.count, 1, "Should create a Faro event for change_user")
+        XCTAssertNotNil(result.user, "Should extract user information")
+
+        let event = result.events[0]
+        XCTAssertEqual(event.name, "user_changed")
+        XCTAssertEqual(event.dateTimestamp, testDate)
+        XCTAssertEqual(event.timestamp, testISOString)
+        XCTAssertEqual(event.attributes["username"], "testuser")
+        XCTAssertEqual(event.attributes["user_id"], "12345")
+        XCTAssertEqual(event.attributes["user_email"], "user@example.com")
+
+        let user = result.user!
+        XCTAssertEqual(user.username, "testuser")
+        XCTAssertEqual(user.id, "12345")
+        XCTAssertEqual(user.email, "user@example.com")
+    }
+
+    func testMixedLogRecords() {
+        // Given
+        let logRecords = [
+            ReadableLogRecord(
+                resource: Resource(),
+                instrumentationScopeInfo: InstrumentationScopeInfo(name: "test1"),
+                timestamp: testDate,
+                body: AttributeValue.string("Regular log"),
+                attributes: [:]
+            ),
+            ReadableLogRecord(
+                resource: Resource(),
+                instrumentationScopeInfo: InstrumentationScopeInfo(name: "test2"),
+                timestamp: testDate,
+                body: AttributeValue.string("change_user"),
+                attributes: [
+                    "username": AttributeValue.string("testuser"),
+                ]
+            ),
+            ReadableLogRecord(
+                resource: Resource(),
+                instrumentationScopeInfo: InstrumentationScopeInfo(name: "test3"),
+                timestamp: testDate,
+                body: AttributeValue.string("Another log"),
+                attributes: [:]
+            ),
+        ]
+
+        // When
+        let result = FaroOtelLogRecordAdapter.adaptRecords(logRecords: logRecords)
+
+        // Then
+        XCTAssertEqual(result.logs.count, 2, "Should have 2 regular logs")
+        XCTAssertEqual(result.events.count, 1, "Should have 1 event")
+        XCTAssertNotNil(result.user, "Should extract user information")
+
+        XCTAssertEqual(result.logs[0].message, "Regular log")
+        XCTAssertEqual(result.logs[1].message, "Another log")
+        XCTAssertEqual(result.events[0].name, "user_changed")
     }
 }
