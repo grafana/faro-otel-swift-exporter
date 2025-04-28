@@ -137,19 +137,22 @@ final class MockDeviceInformationSource: DeviceInformationSource {
     var deviceBrand: String
     var deviceModel: String
     var isPhysical: Bool
+    var deviceId: String
 
     init(
         osName: String,
         osVersion: String,
         deviceBrand: String,
         deviceModel: String,
-        isPhysical: Bool
+        isPhysical: Bool,
+        deviceId: String
     ) {
         self.osName = osName
         self.osVersion = osVersion
         self.deviceBrand = deviceBrand
         self.deviceModel = deviceModel
         self.isPhysical = isPhysical
+        self.deviceId = deviceId
     }
 }
 

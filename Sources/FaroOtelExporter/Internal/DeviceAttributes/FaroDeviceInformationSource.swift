@@ -14,6 +14,7 @@ protocol DeviceInformationSource {
     var deviceBrand: String { get } // e.g., "iPhone", "Apple Watch"
     var deviceModel: String { get } // e.g., "iPhone14,3", "Watch6,1", "MacBookPro18,1"
     var isPhysical: Bool { get }
+    var deviceId: String { get }
 }
 
 // --- Concrete Device Information Sources ---
@@ -21,6 +22,7 @@ protocol DeviceInformationSource {
 #if os(watchOS)
     struct WatchOSDeviceSource: DeviceInformationSource {
         private let device = WKInterfaceDevice.current()
+        private let identifierProvider = FaroPersistentDeviceIdentifierProvider()
 
         var osName: String { device.systemName }
         var osVersion: String { device.systemVersion }
@@ -31,12 +33,21 @@ protocol DeviceInformationSource {
         #else
             var isPhysical: Bool { true }
         #endif
+
+        var deviceId: String {
+            if #available(watchOS 6.2, *) {
+                device.identifierForVendor?.uuidString ?? identifierProvider.getIdentifier()
+            } else {
+                identifierProvider.getIdentifier()
+            }
+        }
     }
 #endif
 
 #if os(iOS) || os(tvOS) || os(visionOS)
     struct IOSDeviceSource: DeviceInformationSource {
         private let device = UIDevice.current
+        private let identifierProvider = FaroPersistentDeviceIdentifierProvider()
 
         var osName: String { device.systemName }
         var osVersion: String { device.systemVersion }
@@ -47,18 +58,24 @@ protocol DeviceInformationSource {
         #else
             var isPhysical: Bool { true }
         #endif
+
+        var deviceId: String {
+            device.identifierForVendor?.uuidString ?? identifierProvider.getIdentifier()
+        }
     }
 #endif
 
 #if os(macOS)
     struct MacOSDeviceSource: DeviceInformationSource {
         private let processInfo = ProcessInfo.processInfo
+        private let identifierProvider = FaroPersistentDeviceIdentifierProvider()
 
         var osName: String { "macOS" }
         var osVersion: String { processInfo.operatingSystemVersionString }
         var deviceBrand: String { "apple" }
         var deviceModel: String { getMacModelIdentifier() } // Use hw.model like "MacBookPro18,1"
         var isPhysical: Bool { true } // Assume physical
+        var deviceId: String { identifierProvider.getIdentifier() }
 
         // Private helper specific to macOS
         private func getMacModelIdentifier() -> String {
@@ -74,12 +91,15 @@ protocol DeviceInformationSource {
 // Fallback for other potential future platforms
 struct FallbackDeviceSource: DeviceInformationSource {
     private let processInfo = ProcessInfo.processInfo
+    private let identifierProvider = FaroPersistentDeviceIdentifierProvider()
 
     var osName: String { processInfo.operatingSystemVersionString }
     var osVersion: String { "" }
     var deviceBrand: String { "unknown" }
     var deviceModel: String { "unknown" }
     var isPhysical: Bool { true }
+
+    var deviceId: String { identifierProvider.getIdentifier() }
 }
 
 // --- Shared Helper Function for Device Model Detection ---

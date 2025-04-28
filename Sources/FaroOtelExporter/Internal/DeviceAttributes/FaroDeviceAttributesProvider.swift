@@ -5,11 +5,9 @@ protocol FaroDeviceAttributesProviding {
 
 class FaroDeviceAttributesProvider: FaroDeviceAttributesProviding {
     private let source: DeviceInformationSource
-    private let identifierProvider: PersistentDeviceIdentifierProviding
 
-    init(source: DeviceInformationSource, identifierProvider: PersistentDeviceIdentifierProviding) {
+    init(source: DeviceInformationSource) {
         self.source = source
-        self.identifierProvider = identifierProvider
     }
 
     func getDeviceAttributes() -> [String: String] {
@@ -17,7 +15,7 @@ class FaroDeviceAttributesProvider: FaroDeviceAttributesProviding {
 
         // Set base/shared attributes
         faroAttributes["device_manufacturer"] = "apple"
-        faroAttributes["device_id"] = identifierProvider.getIdentifier()
+        faroAttributes["device_id"] = source.deviceId
 
         // Use the injected source for platform details
         faroAttributes["device_os"] = source.osName
@@ -44,7 +42,6 @@ class FaroDeviceAttributesProviderFactory {
             let source = FallbackDeviceSource()
         #endif
 
-        let identifierProvider = FaroPersistentDeviceIdentifierProvider()
-        return FaroDeviceAttributesProvider(source: source, identifierProvider: identifierProvider)
+        return FaroDeviceAttributesProvider(source: source)
     }
 }

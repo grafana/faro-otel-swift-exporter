@@ -10,10 +10,10 @@ final class FaroDeviceAttributesProviderTests: XCTestCase {
             osVersion: "14.0",
             deviceBrand: "MacBook",
             deviceModel: "MacBookPro18,1",
-            isPhysical: false
+            isPhysical: false,
+            deviceId: "12345"
         )
-        let identifierProvider = MockPersistentDeviceIdentifierProvider(mockIdentifier: "custom-device-id")
-        let provider = FaroDeviceAttributesProvider(source: source, identifierProvider: identifierProvider)
+        let provider = FaroDeviceAttributesProvider(source: source)
 
         // When
         let attributes = provider.getDeviceAttributes()
@@ -25,7 +25,7 @@ final class FaroDeviceAttributesProviderTests: XCTestCase {
         XCTAssertEqual(attributes["device_os_detail"], "macOS 14.0")
         XCTAssertEqual(attributes["device_brand"], "MacBook")
         XCTAssertEqual(attributes["device_model"], "MacBookPro18,1")
-        XCTAssertEqual(attributes["device_id"], "custom-device-id")
+        XCTAssertEqual(attributes["device_id"], "12345")
         XCTAssertEqual(attributes["device_is_physical"], "false")
     }
 
@@ -36,10 +36,10 @@ final class FaroDeviceAttributesProviderTests: XCTestCase {
             osVersion: "14.0",
             deviceBrand: "MacBook",
             deviceModel: "MacBookPro18,1",
-            isPhysical: false
+            isPhysical: false,
+            deviceId: "12345"
         )
-        let identifierProvider = MockPersistentDeviceIdentifierProvider(mockIdentifier: "custom-device-id")
-        let provider = FaroDeviceAttributesProvider(source: source, identifierProvider: identifierProvider)
+        let provider = FaroDeviceAttributesProvider(source: source)
 
         // When
         let attributes = provider.getDeviceAttributes()
