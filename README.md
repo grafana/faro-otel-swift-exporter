@@ -57,6 +57,15 @@ let loggerProvider = LoggerProviderBuilder()
     .build()
 ```
 
+## Privacy
+
+This SDK utilizes certain APIs that require privacy declarations as mandated by Apple:
+
+- **Identifier For Vendor (`identifierForVendor`):** Used via `UIDevice.current.identifierForVendor` or `WKInterfaceDevice.current().identifierForVendor` (depending on the platform) to generate a unique identifier for the device. This helps correlate telemetry data and errors to a specific device instance for observability purposes within your application's sessions, without relying on personally identifiable information across different app vendors. The reason declared in the privacy manifest is `CA92.1` (App Functionality).
+- **User Defaults (`UserDefaults`):** Used as a fallback mechanism to store a generated unique device identifier _only_ when `identifierForVendor` is unavailable (e.g., on macOS or older watchOS versions where it wasn't available or reliable). This ensures consistent device identification for telemetry within the scope of this SDK's usage. The reason declared in the privacy manifest is `CA92.1` (App Functionality).
+
+A `PrivacyInfo.xcprivacy` file is included in this package (located at `Sources/FaroOtelExporter/PrivacyInfo.xcprivacy`), declaring the usage of these APIs. When you integrate this SDK into your application, this manifest will be bundled, contributing to your app's overall privacy report. Please review Apple's documentation on [Privacy Manifests](https://developer.apple.com/documentation/bundleresources/privacy_manifest_files) to understand how this impacts your app submission process.
+
 ## Additional Resources
 
 - [Grafana Faro Documentation](https://grafana.com/oss/faro/)
