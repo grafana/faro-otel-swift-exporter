@@ -50,56 +50,56 @@ import OpenTelemetrySdk
 ///     .build()
 /// ```
 public final class FaroExporter: SpanExporter, LogRecordExporter {
-  private let faroManager: FaroManager
+    private let faroManager: FaroManager
 
-  /// Initialize a new Faro exporter instance
-  /// - Parameter options: Configuration options
-  /// - Throws: FaroExporterError if configuration is invalid
-  public init(options: FaroExporterOptions) throws {
-    faroManager = try FaroManagerFactory.getInstance(options: options)
-  }
-
-  // MARK: - SpanExporter Implementation
-
-  public func export(spans: [SpanData], explicitTimeout: TimeInterval?) -> SpanExporterResultCode {
-    // Push spans as normal
-    faroManager.pushSpans(spans)
-
-    // Additionally create and push a Faro event for each span
-    let events = spans.compactMap { span -> FaroEvent? in
-      guard let traceContext = span.getFaroTraceContext() else { return nil }
-
-      return FaroEvent.create(
-        name: span.getFaroEventName(),
-        attributes: span.getFaroEventAttributes(),
-        trace: traceContext
-      )
+    /// Initialize a new Faro exporter instance
+    /// - Parameter options: Configuration options
+    /// - Throws: FaroExporterError if configuration is invalid
+    public init(options: FaroExporterOptions) throws {
+        faroManager = try FaroManagerFactory.getInstance(options: options)
     }
 
-    if !events.isEmpty {
-      faroManager.pushEvents(events: events)
+    // MARK: - SpanExporter Implementation
+
+    public func export(spans: [SpanData], explicitTimeout: TimeInterval?) -> SpanExporterResultCode {
+        // Push spans as normal
+        faroManager.pushSpans(spans)
+
+        // Additionally create and push a Faro event for each span
+        let events = spans.compactMap { span -> FaroEvent? in
+            guard let traceContext = span.getFaroTraceContext() else { return nil }
+
+            return FaroEvent.create(
+                name: span.getFaroEventName(),
+                attributes: span.getFaroEventAttributes(),
+                trace: traceContext
+            )
+        }
+
+        if !events.isEmpty {
+            faroManager.pushEvents(events: events)
+        }
+
+        return .success
     }
 
-    return .success
-  }
+    public func flush(explicitTimeout: TimeInterval?) -> SpanExporterResultCode {
+        .success
+    }
 
-  public func flush(explicitTimeout: TimeInterval?) -> SpanExporterResultCode {
-    return .success
-  }
+    public func shutdown(explicitTimeout: TimeInterval?) {}
 
-  public func shutdown(explicitTimeout: TimeInterval?) {}
+    // MARK: - LogRecordExporter Implementation
 
-  // MARK: - LogRecordExporter Implementation
+    public func export(logRecords: [ReadableLogRecord], explicitTimeout: TimeInterval?) -> ExportResult {
+        let faroLogs = FaroLogAdapter.toFaroLogs(logRecords: logRecords)
+        faroManager.pushLogs(faroLogs)
+        return .success
+    }
 
-  public func export(logRecords: [ReadableLogRecord], explicitTimeout: TimeInterval?) -> ExportResult {
-    let faroLogs = FaroLogAdapter.toFaroLogs(logRecords: logRecords)
-    faroManager.pushLogs(faroLogs)
-    return .success
-  }
+    public func forceFlush(explicitTimeout: TimeInterval?) -> ExportResult {
+        .success
+    }
 
-  public func forceFlush(explicitTimeout: TimeInterval?) -> ExportResult {
-    return .success
-  }
-
-  public func shutdown() async {}
+    public func shutdown() async {}
 }
