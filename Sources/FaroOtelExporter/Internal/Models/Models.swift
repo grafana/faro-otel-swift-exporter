@@ -177,23 +177,11 @@ struct FaroMeta: Encodable {
     let session: FaroSession
     let user: FaroUser?
     let view: FaroView
-
-    init(sdk: FaroSdkInfo, app: FaroAppInfo, session: FaroSession, user: FaroUser?, view: FaroView) {
-        self.sdk = sdk
-        self.app = app
-        self.session = session
-        self.user = user
-        self.view = view
-    }
 }
 
 /// Holds metadata about a view
 struct FaroView: Encodable {
     let name: String
-
-    init(name: String) {
-        self.name = name
-    }
 }
 
 /// Holds metadata about the user related to an app event
@@ -215,11 +203,6 @@ struct FaroUser: Encodable {
 struct FaroSession: Encodable {
     let id: String
     let attributes: [String: String]
-
-    init(id: String, attributes: [String: String]) {
-        self.id = id
-        self.attributes = attributes
-    }
 }
 
 /// Holds metadata about the app agent that produced the event
@@ -227,23 +210,12 @@ struct FaroSdkInfo: Encodable {
     let name: String
     let version: String
     let integrations: [FaroIntegration]
-
-    init(name: String, version: String, integrations: [FaroIntegration]) {
-        self.name = name
-        self.version = version
-        self.integrations = integrations
-    }
 }
 
 /// Holds metadata about a plugin/integration on the app agent that collected and sent the event
 struct FaroIntegration: Encodable {
     let name: String
     let version: String
-
-    init(name: String, version: String) {
-        self.name = name
-        self.version = version
-    }
 }
 
 /// Holds metadata about the application event originates from
@@ -254,15 +226,6 @@ struct FaroAppInfo: Encodable {
     let environment: String?
     let bundleId: String?
     let release: String?
-
-    init(name: String?, namespace: String?, version: String?, environment: String?, bundleId: String?, release: String?) {
-        self.name = name
-        self.namespace = namespace
-        self.version = version
-        self.environment = environment
-        self.bundleId = bundleId
-        self.release = release
-    }
 }
 
 /// Holds trace id and span id associated to an entity (log, exception, measurement...)
@@ -328,13 +291,6 @@ struct FaroMeasurement: Encodable {
     let values: [String: Double]
     let timestamp: String
     let trace: FaroTraceContext?
-
-    init(type: String, values: [String: Double], timestamp: String, trace: FaroTraceContext?) {
-        self.type = type
-        self.values = values
-        self.timestamp = timestamp
-        self.trace = trace
-    }
 }
 
 /// Represents a single stacktrace frame
@@ -344,23 +300,11 @@ struct FaroStacktraceFrame: Encodable {
     let filename: String
     let function: String
     let module: String
-
-    init(colno: Int, lineno: Int, filename: String, function: String, module: String) {
-        self.colno = colno
-        self.lineno = lineno
-        self.filename = filename
-        self.function = function
-        self.module = module
-    }
 }
 
 /// Is a collection of Frames
 struct FaroStacktrace: Encodable {
     let frames: [FaroStacktraceFrame]
-
-    init(frames: [FaroStacktraceFrame]) {
-        self.frames = frames
-    }
 }
 
 /// Holds all the data regarding an exception
@@ -371,15 +315,6 @@ struct FaroException: Encodable {
     let stacktrace: FaroStacktrace?
     let context: [String: String]?
     let trace: FaroTraceContext?
-
-    init(type: String, value: String, timestamp: String, stacktrace: FaroStacktrace?, context: [String: String]?, trace: FaroTraceContext?) {
-        self.type = type
-        self.value = value
-        self.timestamp = timestamp
-        self.stacktrace = stacktrace
-        self.context = context
-        self.trace = trace
-    }
 }
 
 /// Log level enum for incoming app logs

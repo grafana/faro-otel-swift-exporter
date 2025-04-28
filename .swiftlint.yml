@@ -21,6 +21,15 @@ opt_in_rules:
 
 disabled_rules:
   - trailing_whitespace # Often handled by SwiftFormat
+  - vertical_whitespace # Handled by SwiftFormat
+  - opening_brace # Handled by SwiftFormat
+  - closing_brace # Handled by SwiftFormat
+  - comma # Handled by SwiftFormat
+  - colon # Handled by SwiftFormat
+  - statement_position # Handled by SwiftFormat
+  - line_length # Handled by SwiftFormat
+  - trailing_comma # Handled by SwiftFormat
+  - number_separator # Handled by SwiftFormat
 
 # Exclude vendor directories and build artifacts
 excluded:
