@@ -128,7 +128,7 @@ final class FaroManager {
 
         return FaroPayload(
             meta: FaroMeta(
-                sdk: FaroSdkInfo(name: "opentelemetry-swift-faro-exporter", version: "1.3.5", integrations: []), // TODO: Get version dynamically?
+                sdk: FaroSdkInfo(name: "opentelemetry-swift-faro-exporter", version: "1.3.5", integrations: []),
                 app: appInfo,
                 session: session,
                 user: nil,

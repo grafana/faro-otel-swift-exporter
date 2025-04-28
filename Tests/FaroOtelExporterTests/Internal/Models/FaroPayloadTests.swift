@@ -4,6 +4,21 @@ import XCTest
 final class FaroPayloadTests: XCTestCase {
     func testFaroPayloadEncoding() throws {
         // Given
+        let payload = createTestPayload()
+        let expectedJsonString = createExpectedJsonString()
+
+        // When
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted // Keep for readability if debugging output
+        let actualJsonData = try encoder.encode(payload)
+
+        // Then
+        try assertJsonDataEqualsJsonString(actualJsonData, expectedJsonString)
+    }
+
+    // MARK: - Helpers
+
+    private func createTestPayload() -> FaroPayload {
         let sdk = FaroSdkInfo(
             name: "test-sdk",
             version: "1.0.0",
@@ -43,25 +58,21 @@ final class FaroPayloadTests: XCTestCase {
 
         let log = FaroLog(
             timestamp: "2024-03-20T10:00:00Z",
-            dateTimestamp: Date(),
+            dateTimestamp: Date(), // Note: Date() might make test flaky if exact time matters
             level: .info,
             message: "Test log message",
             context: ["context": "test"],
             trace: nil
         )
 
-        let payload = FaroPayload(
+        return FaroPayload(
             meta: meta,
             logs: [log]
         )
+    }
 
-        // When
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        let jsonData = try encoder.encode(payload)
-
-        // Then
-        let expectedJson = """
+    private func createExpectedJsonString() -> String {
+        """
         {
           "meta": {
             "sdk": {
@@ -112,11 +123,18 @@ final class FaroPayloadTests: XCTestCase {
           ]
         }
         """
+    }
 
-        // Convert both strings to dictionaries for comparison (to avoid formatting differences)
-        let actualDict = try JSONSerialization.jsonObject(with: jsonData) as! [String: Any]
-        let expectedDict = try JSONSerialization.jsonObject(with: expectedJson.data(using: .utf8)!) as! [String: Any]
+    private func assertJsonDataEqualsJsonString(_ actualData: Data, _ expectedJsonString: String, file: StaticString = #filePath, line: UInt = #line) throws {
+        // Convert expected string to Data and then both to dictionaries for comparison
+        let expectedJsonData = try XCTUnwrap(expectedJsonString.data(using: .utf8), file: file, line: line)
 
-        XCTAssertEqual(NSDictionary(dictionary: actualDict), NSDictionary(dictionary: expectedDict))
+        let actualObject = try JSONSerialization.jsonObject(with: actualData)
+        let expectedObject = try JSONSerialization.jsonObject(with: expectedJsonData)
+
+        let actualDict = try XCTUnwrap(actualObject as? [String: Any], "Actual JSON data did not deserialize to a Dictionary", file: file, line: line)
+        let expectedDict = try XCTUnwrap(expectedObject as? [String: Any], "Expected JSON string did not deserialize to a Dictionary", file: file, line: line)
+
+        XCTAssertEqual(NSDictionary(dictionary: actualDict), NSDictionary(dictionary: expectedDict), file: file, line: line)
     }
 }

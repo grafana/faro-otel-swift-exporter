@@ -2,18 +2,27 @@
 import Foundation
 import XCTest
 
+/// Structure to hold mock HTTP response components
+struct MockHttpResponse {
+    let data: Data?
+    let response: URLResponse?
+    let error: Error?
+}
+
 /// Mock HTTP client for testing network interactions
 class MockFaroHttpClient: FaroHttpClient {
     var lastRequest: URLRequest?
-    var mockResponse: (data: Data?, response: URLResponse?, error: Error?)?
+    var mockResponse: MockHttpResponse?
 
     func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> FaroHttpClientTask {
         lastRequest = request
 
-        if let mockResponse {
+        if let mockResponse = self.mockResponse { // Use optional binding
             completionHandler(mockResponse.data, mockResponse.response, mockResponse.error)
         } else {
-            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)
+            // Provide a default success response if no mock is set
+            let defaultUrl = request.url ?? URL(string: "https://example.com")!
+            let response = HTTPURLResponse(url: defaultUrl, statusCode: 200, httpVersion: nil, headerFields: nil)
             completionHandler(nil, response, nil)
         }
 

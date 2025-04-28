@@ -58,71 +58,85 @@ struct FaroPayload: Encodable {
         }
     }
 
+    // Helper for basic value types
+    private func encodeJSONValue(_ value: Any, forKey key: DynamicCodingKey, into container: inout KeyedEncodingContainer<DynamicCodingKey>) throws {
+        if let stringValue = value as? String {
+            try container.encode(stringValue, forKey: key)
+        } else if let intValue = value as? Int {
+            try container.encode(intValue, forKey: key)
+        } else if let doubleValue = value as? Double {
+            try container.encode(doubleValue, forKey: key)
+        } else if let boolValue = value as? Bool {
+            try container.encode(boolValue, forKey: key)
+        } else if value is NSNull {
+            try container.encodeNil(forKey: key)
+        }
+        // Note: Arrays and Dictionaries are handled separately before calling this helper
+    }
+
+    // Helper for trace/span ID encoding
+    private func encodeTraceSpanID(_ value: Any, forKey key: DynamicCodingKey, into container: inout KeyedEncodingContainer<DynamicCodingKey>) throws -> Bool {
+        // Check various capitalization and formats
+        guard key.stringValue.lowercased() == "traceid" || key.stringValue.lowercased() == "spanid" || key.stringValue.lowercased() == "parentspanid" else {
+            return false // Not a trace/span ID key
+        }
+
+        // Handle different possible value types
+        if let data = value as? Data {
+            let hexString = data.map { String(format: "%02hhx", $0) }.joined()
+            try container.encode(hexString, forKey: key)
+            return true
+        } else if let base64String = value as? String {
+            if let data = Data(base64Encoded: base64String) {
+                let hexString = data.map { String(format: "%02hhx", $0) }.joined()
+                try container.encode(hexString, forKey: key)
+                return true
+            }
+        } else if let valueDict = value as? [String: Any], let stringValue = valueDict["stringValue"] as? String {
+            try container.encode(stringValue, forKey: key)
+            return true
+        } else if let stringValue = value as? String { // If it's already a string (potentially hex)
+            try container.encode(stringValue, forKey: key)
+            return true
+        }
+        return false // Couldn't encode as trace/span ID
+    }
+
+    // Helper for span kind encoding
+    private func encodeSpanKind(_ value: Any, forKey key: DynamicCodingKey, into container: inout KeyedEncodingContainer<DynamicCodingKey>) throws -> Bool {
+        guard key.stringValue == "kind" else {
+            return false // Not the span kind key
+        }
+
+        if let kindString = value as? String {
+            let kindValue = switch kindString {
+            case "SPAN_KIND_INTERNAL": 1
+            case "SPAN_KIND_SERVER": 2
+            case "SPAN_KIND_CLIENT": 3
+            case "SPAN_KIND_PRODUCER": 4
+            case "SPAN_KIND_CONSUMER": 5
+            default: 0
+            }
+            try container.encode(kindValue, forKey: key)
+            return true
+        } else if let kindInt = value as? Int {
+            try container.encode(kindInt, forKey: key)
+            return true
+        }
+        return false // Couldn't encode as span kind
+    }
+
     // Helper method to encode JSON objects with proper nesting
     private func encodeJSONObject(_ jsonObject: [String: Any], into container: inout KeyedEncodingContainer<DynamicCodingKey>) throws {
         for (key, value) in jsonObject {
             let codingKey = DynamicCodingKey(key: key)
 
-            // Special handling for trace and span IDs - check various capitalization and formats
-            if key == "traceId" || key == "spanId" || key == "parentSpanId" ||
-                key == "traceID" || key == "spanID" || key == "parentSpanID"
-            {
-                // Handle different possible value types
-                if let data = value as? Data {
-                    // Convert binary data to hex string
-                    let hexString = data.map { String(format: "%02hhx", $0) }.joined()
-                    try container.encode(hexString, forKey: codingKey)
-                    continue
-                } else if let base64String = value as? String {
-                    // Try to decode base64 string to Data then to hex
-                    if let data = Data(base64Encoded: base64String) {
-                        let hexString = data.map { String(format: "%02hhx", $0) }.joined()
-                        try container.encode(hexString, forKey: codingKey)
-                        continue
-                    }
-                } else if let valueDict = value as? [String: Any],
-                          let stringValue = valueDict["stringValue"] as? String
-                {
-                    // For Faro format where values might be in {stringValue: "..."} format
-                    try container.encode(stringValue, forKey: codingKey)
-                    continue
-                }
-            }
+            // Try special handlers first
+            if try encodeTraceSpanID(value, forKey: codingKey, into: &container) { continue }
+            if try encodeSpanKind(value, forKey: codingKey, into: &container) { continue }
 
-            // Special handling for span kind
-            if key == "kind" {
-                if let kindString = value as? String {
-                    let kindValue = switch kindString {
-                    case "SPAN_KIND_INTERNAL":
-                        1
-                    case "SPAN_KIND_SERVER":
-                        2
-                    case "SPAN_KIND_CLIENT":
-                        3
-                    case "SPAN_KIND_PRODUCER":
-                        4
-                    case "SPAN_KIND_CONSUMER":
-                        5
-                    default:
-                        0
-                    }
-                    try container.encode(kindValue, forKey: codingKey)
-                    continue
-                } else if let kindInt = value as? Int {
-                    try container.encode(kindInt, forKey: codingKey)
-                    continue
-                }
-            }
-
-            if let stringValue = value as? String {
-                try container.encode(stringValue, forKey: codingKey)
-            } else if let intValue = value as? Int {
-                try container.encode(intValue, forKey: codingKey)
-            } else if let doubleValue = value as? Double {
-                try container.encode(doubleValue, forKey: codingKey)
-            } else if let boolValue = value as? Bool {
-                try container.encode(boolValue, forKey: codingKey)
-            } else if let arrayValue = value as? [Any] {
+            // If not a special key, handle standard types
+            if let arrayValue = value as? [Any] {
                 // Create a nested array container
                 var arrayContainer = container.nestedUnkeyedContainer(forKey: codingKey)
                 try encodeJSONArray(arrayValue, into: &arrayContainer)
@@ -130,8 +144,9 @@ struct FaroPayload: Encodable {
                 // Create a nested keyed container
                 var nestedDictContainer = container.nestedContainer(keyedBy: DynamicCodingKey.self, forKey: codingKey)
                 try encodeJSONObject(dictValue, into: &nestedDictContainer)
-            } else if value is NSNull {
-                try container.encodeNil(forKey: codingKey)
+            } else {
+                // Handle basic types using the helper
+                try encodeJSONValue(value, forKey: codingKey, into: &container)
             }
         }
     }

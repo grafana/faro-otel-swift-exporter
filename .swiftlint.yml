@@ -3,7 +3,7 @@
 opt_in_rules:
   - empty_count
   - explicit_init
-  - explicit_type_interface
+  #  - explicit_type_interface # Removed for conciseness where type inference is clear
   - first_where
   - nimble_operator
   - number_separator
@@ -44,3 +44,19 @@ excluded:
 #     - id
 #     - URL
 #     - GlobalAPIKey
+
+type_name:
+  max_length:
+    warning: 45 # Allow slightly longer names, e.g., for descriptive test classes
+    # error: 60 # Default error limit remains
+  # min_length: # Example: Enforce minimum length
+  #   warning: 3
+  #   error: 0 # Ignore error
+  # excluded: # Example: Exclude specific names
+  #   - ViewController
+
+function_body_length:
+  warning: 55 # Increase slightly from default 50
+
+file_length:
+  warning: 450 # Increase slightly from default 400

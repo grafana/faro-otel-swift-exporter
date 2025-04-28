@@ -52,7 +52,7 @@ final class FaroTransportTests: XCTestCase {
         XCTAssertEqual(httpClient.lastRequest?.value(forHTTPHeaderField: "x-faro-session-id"), sessionManager.sessionId)
     }
 
-    func testSendEncodesPayload() {
+    func testSendEncodesPayload() throws {
         // Given
         let payload = createTestPayload()
 
@@ -69,21 +69,31 @@ final class FaroTransportTests: XCTestCase {
 
         // Validate the JSON structure matches our expected payload
         if let data = httpClient.lastRequest?.httpBody {
-            let expectedData = try! JSONEncoder().encode(payload)
+            var expectedData: Data!
+            XCTAssertNoThrow(expectedData = try JSONEncoder().encode(payload))
 
             // Convert both to dictionaries for comparison (order-independent)
-            let actualJson = try! JSONSerialization.jsonObject(with: data) as! [String: Any]
-            let expectedJson = try! JSONSerialization.jsonObject(with: expectedData) as! [String: Any]
+            var actualObject: Any!
+            var expectedObject: Any!
+            XCTAssertNoThrow(actualObject = try JSONSerialization.jsonObject(with: data))
+            XCTAssertNoThrow(expectedObject = try JSONSerialization.jsonObject(with: expectedData))
+
+            let actualDict = try XCTUnwrap(actualObject as? [String: Any])
+            let expectedDict = try XCTUnwrap(expectedObject as? [String: Any])
 
             // Compare top-level keys
-            XCTAssertEqual(Set(actualJson.keys), Set(expectedJson.keys))
+            XCTAssertEqual(Set(actualDict.keys), Set(expectedDict.keys))
         }
     }
 
     func testSendCompletesSuccessfully() {
         // Given
         let payload = createTestPayload()
-        httpClient.mockResponse = (data: nil as Data?, response: HTTPURLResponse(url: endpointConfiguration.collectorUrl, statusCode: 200, httpVersion: nil, headerFields: nil), error: nil as Error?)
+        httpClient.mockResponse = MockHttpResponse(
+            data: nil,
+            response: HTTPURLResponse(url: endpointConfiguration.collectorUrl, statusCode: 200, httpVersion: nil, headerFields: nil),
+            error: nil
+        )
 
         // When
         let expectation = expectation(description: "Request completed")
@@ -111,7 +121,7 @@ final class FaroTransportTests: XCTestCase {
         // Given
         let payload = createTestPayload()
         let expectedError = NSError(domain: "test", code: 42, userInfo: [NSLocalizedDescriptionKey: "Network error"])
-        httpClient.mockResponse = (data: nil as Data?, response: nil as URLResponse?, error: expectedError)
+        httpClient.mockResponse = MockHttpResponse(data: nil, response: nil, error: expectedError)
 
         // When
         let expectation = expectation(description: "Request completed")
@@ -141,11 +151,11 @@ final class FaroTransportTests: XCTestCase {
     func testSendFailsWithHttpError() {
         // Given
         let payload = createTestPayload()
-        let responseData = "Error message".data(using: .utf8)
-        httpClient.mockResponse = (
+        let responseData = Data("Error message".utf8)
+        httpClient.mockResponse = MockHttpResponse(
             data: responseData,
             response: HTTPURLResponse(url: endpointConfiguration.collectorUrl, statusCode: 400, httpVersion: nil, headerFields: nil),
-            error: nil as Error?
+            error: nil
         )
 
         // When
