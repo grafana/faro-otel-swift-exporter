@@ -1,0 +1,62 @@
+# .swiftlint.yml
+# Basic configuration, enable recommended rules
+opt_in_rules:
+  - empty_count
+  - explicit_init
+  #  - explicit_type_interface # Removed for conciseness where type inference is clear
+  - first_where
+  - nimble_operator
+  - number_separator
+  - object_literal
+  - operator_usage_whitespace
+  - overridden_super_call
+  - private_outlet
+  - prohibited_super_call
+  - redundant_nil_coalescing
+  - sorted_first_last
+  - sorted_imports
+  - vertical_whitespace_closing_braces
+  - vertical_whitespace_opening_braces
+  - yoda_condition
+
+disabled_rules:
+  - trailing_whitespace # Often handled by SwiftFormat
+  - vertical_whitespace # Handled by SwiftFormat
+  - opening_brace # Handled by SwiftFormat
+  - closing_brace # Handled by SwiftFormat
+  - comma # Handled by SwiftFormat
+  - colon # Handled by SwiftFormat
+  - statement_position # Handled by SwiftFormat
+  - line_length # Handled by SwiftFormat
+  - trailing_comma # Handled by SwiftFormat
+  - number_separator # Handled by SwiftFormat
+
+# Exclude vendor directories and build artifacts
+excluded:
+  - .build
+  - vendor
+# You can customize rules further here, e.g.:
+# line_length: 140
+# identifier_name:
+#   min_length: # only warning
+#     warning: 3
+#   excluded: # excluded via string array
+#     - id
+#     - URL
+#     - GlobalAPIKey
+
+type_name:
+  max_length:
+    warning: 45 # Allow slightly longer names, e.g., for descriptive test classes
+    # error: 60 # Default error limit remains
+  # min_length: # Example: Enforce minimum length
+  #   warning: 3
+  #   error: 0 # Ignore error
+  # excluded: # Example: Exclude specific names
+  #   - ViewController
+
+function_body_length:
+  warning: 55 # Increase slightly from default 50
+
+file_length:
+  warning: 450 # Increase slightly from default 400

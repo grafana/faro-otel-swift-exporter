@@ -1,4 +1,4 @@
-# Faro Exporter
+# Faro OpenTelemetry-Swift Exporter
 
 <img src="./docs/assets/faro_logo.png" alt="Grafana Faro logo" width="300" />
 
@@ -57,8 +57,67 @@ let loggerProvider = LoggerProviderBuilder()
     .build()
 ```
 
+### User Context
+
+Faro supports defining a user for a session, which helps correlate telemetry data with specific users. Since OpenTelemetry doesn't currently have a native concept of user context, the Faro exporter implements a workaround using specialized log records.
+
+To set the current user for your session:
+
+```swift
+// Get a logger instance
+import FaroOtelExporter  // Import to access constants
+
+let logger = loggerProvider.get(instrumentationScopeName: "your-scope-name")
+
+// Set the current user by sending a special log with user attributes
+logger.log(
+    body: FaroOtelConstants.ChangeUser.otelBody,
+    attributes: [
+        FaroOtelConstants.ChangeUser.AttributeKeys.userId: AttributeValue.string("12345"),
+        FaroOtelConstants.ChangeUser.AttributeKeys.username: AttributeValue.string("some_user"),
+        FaroOtelConstants.ChangeUser.AttributeKeys.userEmail: AttributeValue.string("some_user@example.com")
+    ]
+)
+```
+
+When the Faro exporter detects a log with the body text FaroOtelConstants.ChangeUser.otelBody ("otel_change_user"), it will:
+
+1. Extract the user information from the attributes
+2. Set this as the current user for the session
+3. Not forward this message as a regular log
+4. Any other attributes added to the regular log will be ignored
+5. The log severity does not matter, it will be ignored
+
+This approach allows you to maintain user context across your application's telemetry data without requiring changes to the OpenTelemetry protocol. Once OpenTelemetry adds native support for user context, we plan to adopt that approach.
+
+> **Note:** The example above uses constants from the `FaroOtelConstants` class for clean, maintainable code. You can also use string literals directly if preferred:
+>
+> ```swift
+> logger.log(
+>     body: "otel_change_user",
+>     severity: .info,
+>     attributes: [
+>         "user_id": AttributeValue.string("12345"),
+>         "username": AttributeValue.string("some_user"),
+>         "user_email": AttributeValue.string("some_user@example.com")
+>     ]
+> )
+> ```
+
+## Privacy
+
+This SDK utilizes certain APIs that require privacy declarations as mandated by Apple:
+
+- **Device Identification:** The SDK uses `identifierForVendor` (via `UIDevice.current.identifierForVendor` or `WKInterfaceDevice.current().identifierForVendor`) and `UserDefaults` as a complementary mechanism to generate and persist a unique device identifier. This helps correlate telemetry data within your application's sessions without relying on personally identifiable information. On platforms where `identifierForVendor` might be unavailable (e.g., on macOS), `UserDefaults` with a generated UUID serves as a fallback mechanism to maintain consistent device identification.
+
+A `PrivacyInfo.xcprivacy` file is included in this package (located at `Sources/FaroOtelExporter/PrivacyInfo.xcprivacy`), declaring the usage of these APIs. When you integrate this SDK into your application, this manifest will be bundled, contributing to your app's overall privacy report. Please review Apple's documentation on [Privacy Manifests](https://developer.apple.com/documentation/bundleresources/privacy_manifest_files) to understand how this impacts your app submission process.
+
 ## Additional Resources
 
 - [Grafana Faro Documentation](https://grafana.com/oss/faro/)
 - [Grafana Alloy Setup Guide](https://grafana.com/docs/alloy/latest/set-up/)
 - [Frontend Monitoring Dashboard](https://grafana.com/grafana/dashboards/17766-frontend-monitoring/)
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to this project, including setting up your development environment and guidelines for code style.

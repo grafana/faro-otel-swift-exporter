@@ -1,0 +1,13 @@
+--indent 4
+--linebreaks lf
+--swiftversion 5.9
+--header ignore
+--wraparguments before-first
+--wrapelements before-first
+--stripunusedargs closure-only
+--disable blankLinesAtStartOfScope,blankLinesAtEndOfScope,redundantSelf
+--enable indent
+
+# Add specific formatting rules here if needed, e.g.
+# --commas inline
+# --elseposition same-line 
