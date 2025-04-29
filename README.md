@@ -4,6 +4,25 @@
 
 The Faro Exporter is an OpenTelemetry exporter that sends telemetry data to [Grafana Faro](https://grafana.com/oss/faro/), an open-source frontend application monitoring solution. This exporter supports both traces and logs in a single instance with automatic session management, allowing you to monitor your iOS applications using either Grafana Cloud or your own self-hosted infrastructure using [Grafana Alloy](https://grafana.com/docs/alloy) as your collector
 
+## Installation
+
+### Swift Package Manager
+
+Add the package dependency to your `Package.swift` file:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/grafana/faro-otel-swift-exporter.git", from: "1.0.0")
+]
+```
+
+Or in Xcode:
+
+1. Go to File > Add Packages...
+2. Enter the package URL: `https://github.com/grafana/faro-otel-swift-exporter.git`
+3. Select the version or branch you want to use
+4. Click "Add Package"
+
 ## Usage
 
 ### Configuration
