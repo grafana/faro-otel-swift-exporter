@@ -107,7 +107,7 @@ When the Faro exporter detects a log with the body text FaroOtelConstants.Change
 4. Any other attributes added to the regular log will be ignored
 5. The log severity does not matter, it will be ignored
 
-This approach allows you to maintain user context across your application's telemetry data without requiring changes to the OpenTelemetry protocol. Once OpenTelemetry adds native support for user context, we plan to adopt that approach.
+This approach allows you to maintain user context across your application's telemetry data without requiring changes to the OpenTelemetry protocol.
 
 > **Note:** The example above uses constants from the `FaroOtelConstants` class for clean, maintainable code. You can also use string literals directly if preferred:
 >
@@ -125,7 +125,7 @@ This approach allows you to maintain user context across your application's tele
 
 ## Privacy
 
-This SDK utilizes certain APIs that require privacy declarations as mandated by Apple:
+This exporter utilizes certain APIs that require privacy declarations as mandated by Apple:
 
 - **Device Identification:** The SDK uses `identifierForVendor` (via `UIDevice.current.identifierForVendor` or `WKInterfaceDevice.current().identifierForVendor`) and `UserDefaults` as a complementary mechanism to generate and persist a unique device identifier. This helps correlate telemetry data within your application's sessions without relying on personally identifiable information. On platforms where `identifierForVendor` might be unavailable (e.g., on macOS), `UserDefaults` with a generated UUID serves as a fallback mechanism to maintain consistent device identification.
 
