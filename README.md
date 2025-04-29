@@ -86,6 +86,7 @@ When the Faro exporter detects a log with the body text FaroOtelConstants.Change
 2. Set this as the current user for the session
 3. Not forward this message as a regular log
 4. Any other attributes added to the regular log will be ignored
+5. The log severity does not matter, it will be ignored
 
 This approach allows you to maintain user context across your application's telemetry data without requiring changes to the OpenTelemetry protocol. Once OpenTelemetry adds native support for user context, we plan to adopt that approach.
 
