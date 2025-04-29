@@ -203,7 +203,7 @@ final class FaroOtelLogRecordAdapterTests: XCTestCase {
             resource: Resource(),
             instrumentationScopeInfo: InstrumentationScopeInfo(name: "test"),
             timestamp: testDate,
-            body: AttributeValue.string("change_user"),
+            body: AttributeValue.string("otel_change_user"),
             attributes: [
                 "username": AttributeValue.string("testuser"),
                 "user_id": AttributeValue.string("12345"),
@@ -220,17 +220,16 @@ final class FaroOtelLogRecordAdapterTests: XCTestCase {
         XCTAssertNotNil(result.user, "Should extract user information")
 
         let event = result.events[0]
-        XCTAssertEqual(event.name, "user_changed")
+        XCTAssertEqual(event.name, "faro_internal_user_updated")
         XCTAssertEqual(event.dateTimestamp, testDate)
         XCTAssertEqual(event.timestamp, testISOString)
-        XCTAssertEqual(event.attributes["username"], "testuser")
-        XCTAssertEqual(event.attributes["user_id"], "12345")
-        XCTAssertEqual(event.attributes["user_email"], "user@example.com")
+        XCTAssertEqual(event.attributes.count, 0)
 
         let user = result.user!
         XCTAssertEqual(user.username, "testuser")
         XCTAssertEqual(user.id, "12345")
         XCTAssertEqual(user.email, "user@example.com")
+        XCTAssertNil(user.attributes, "There should not be any provided attributes")
     }
 
     func testMixedLogRecords() {
@@ -247,7 +246,7 @@ final class FaroOtelLogRecordAdapterTests: XCTestCase {
                 resource: Resource(),
                 instrumentationScopeInfo: InstrumentationScopeInfo(name: "test2"),
                 timestamp: testDate,
-                body: AttributeValue.string("change_user"),
+                body: AttributeValue.string("otel_change_user"),
                 attributes: [
                     "username": AttributeValue.string("testuser"),
                 ]
@@ -271,6 +270,6 @@ final class FaroOtelLogRecordAdapterTests: XCTestCase {
 
         XCTAssertEqual(result.logs[0].message, "Regular log")
         XCTAssertEqual(result.logs[1].message, "Another log")
-        XCTAssertEqual(result.events[0].name, "user_changed")
+        XCTAssertEqual(result.events[0].name, "faro_internal_user_updated")
     }
 }

@@ -367,7 +367,7 @@ final class FaroManagerTests: XCTestCase {
         XCTAssertEqual(payload.meta.user?.id, "test-user-id", "User ID should match")
         XCTAssertEqual(payload.meta.user?.username, "testuser", "Username should match")
         XCTAssertEqual(payload.meta.user?.email, "test@example.com", "Email should match")
-        XCTAssertEqual(payload.meta.user?.attributes["role"], "tester", "User attributes should match")
+        XCTAssertEqual(payload.meta.user?.attributes?["role"], "tester", "User attributes should match")
     }
 
     func testSetUserToNil() {

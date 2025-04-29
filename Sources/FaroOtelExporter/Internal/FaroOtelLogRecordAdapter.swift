@@ -26,7 +26,7 @@ class FaroOtelLogRecordAdapter {
         var faroEvents = [FaroEvent]()
         var currentUser: FaroUser?
         for logRecord in logRecords {
-            if let body = logRecord.body, body.description == "change_user" {
+            if let body = logRecord.body, body.description == FaroOtelConstants.ChangeUser.otelBody {
                 // Intercept and create a FaroEvent using the helper
                 let faroEvent = toFaroEvent(logRecord: logRecord)
                 faroEvents.append(faroEvent)
@@ -45,9 +45,9 @@ class FaroOtelLogRecordAdapter {
     /// - Parameter logRecord: The OTel log record to inspect.
     /// - Returns: A FaroUser object if user_id, username, or user_email is found, otherwise nil.
     private static func toFaroUser(logRecord: ReadableLogRecord) -> FaroUser? {
-        let userId = logRecord.attributes["user_id"]?.description ?? ""
-        let userName = logRecord.attributes["username"]?.description ?? ""
-        let userEmail = logRecord.attributes["user_email"]?.description ?? ""
+        let userId = logRecord.attributes[FaroOtelConstants.ChangeUser.AttributeKeys.userId]?.description ?? ""
+        let userName = logRecord.attributes[FaroOtelConstants.ChangeUser.AttributeKeys.username]?.description ?? ""
+        let userEmail = logRecord.attributes[FaroOtelConstants.ChangeUser.AttributeKeys.userEmail]?.description ?? ""
 
         // Return nil only if all specific fields are empty
         if userId.isEmpty, userName.isEmpty, userEmail.isEmpty {
@@ -62,7 +62,7 @@ class FaroOtelLogRecordAdapter {
         )
     }
 
-    /// Convert a single "change_user" log record to a Faro event (private helper)
+    /// Convert a single "otel_change_user" log record to a Faro event (private helper)
     private static func toFaroEvent(logRecord: ReadableLogRecord) -> FaroEvent {
         let dateTimestamp = logRecord.timestamp
         let isoTimestamp = dateProvider.iso8601String(from: dateTimestamp)
@@ -78,7 +78,7 @@ class FaroOtelLogRecordAdapter {
         }
 
         return FaroEvent(
-            name: "faro_internal_user_updated", // Specific event name
+            name: FaroConstants.Events.userUpdated,
             attributes: [:],
             timestamp: isoTimestamp,
             dateTimestamp: dateTimestamp,
