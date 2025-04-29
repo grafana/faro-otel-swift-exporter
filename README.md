@@ -83,20 +83,21 @@ Faro supports defining a user for a session, which helps correlate telemetry dat
 To set the current user for your session:
 
 ```swift
-// Get a logger instance
-import FaroOtelExporter  // Import to access constants
+// Import to access constants
+import FaroOtelExporter
 
+// Get a logger instance
 let logger = loggerProvider.get(instrumentationScopeName: "your-scope-name")
 
 // Set the current user by sending a special log with user attributes
-logger.log(
-    body: FaroOtelConstants.ChangeUser.otelBody,
-    attributes: [
-        FaroOtelConstants.ChangeUser.AttributeKeys.userId: AttributeValue.string("12345"),
-        FaroOtelConstants.ChangeUser.AttributeKeys.username: AttributeValue.string("some_user"),
-        FaroOtelConstants.ChangeUser.AttributeKeys.userEmail: AttributeValue.string("some_user@example.com")
-    ]
-)
+logger.logRecordBuilder()
+    .setBody(OpenTelemetryApi.AttributeValue.string(FaroOtelConstants.ChangeUser.otelBody))
+    .setAttributes([
+        FaroOtelConstants.ChangeUser.AttributeKeys.username: OpenTelemetryApi.AttributeValue.string("some_user"),
+        FaroOtelConstants.ChangeUser.AttributeKeys.userEmail: OpenTelemetryApi.AttributeValue.string("some_user@example.com"),
+        FaroOtelConstants.ChangeUser.AttributeKeys.userId: OpenTelemetryApi.AttributeValue.string("12345")
+    ])
+    .emit()
 ```
 
 When the Faro exporter detects a log with the body text FaroOtelConstants.ChangeUser.otelBody ("otel_change_user"), it will:
@@ -112,15 +113,14 @@ This approach allows you to maintain user context across your application's tele
 > **Note:** The example above uses constants from the `FaroOtelConstants` class for clean, maintainable code. You can also use string literals directly if preferred:
 >
 > ```swift
-> logger.log(
->     body: "otel_change_user",
->     severity: .info,
->     attributes: [
->         "user_id": AttributeValue.string("12345"),
->         "username": AttributeValue.string("some_user"),
->         "user_email": AttributeValue.string("some_user@example.com")
->     ]
-> )
+> logger.logRecordBuilder()
+>    .setBody(OpenTelemetryApi.AttributeValue.string("otel_change_user"))
+>    .setAttributes([
+>        "username": OpenTelemetryApi.AttributeValue.string("some_user"),
+>        "user_email": OpenTelemetryApi.AttributeValue.string("some_user@example.com"),
+>        "user_id": OpenTelemetryApi.AttributeValue.string("12345")
+>    ])
+>    .emit()
 > ```
 
 ## Privacy
