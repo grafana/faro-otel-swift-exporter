@@ -2,7 +2,18 @@
 
 <img src="./docs/assets/faro_logo.png" alt="Grafana Faro logo" width="300" />
 
-The Faro Exporter is an OpenTelemetry exporter that sends telemetry data to [Grafana Faro](https://grafana.com/oss/faro/), an open-source frontend application monitoring solution. This exporter supports both traces and logs in a single instance with automatic session management, allowing you to monitor your iOS applications using either Grafana Cloud or your own self-hosted infrastructure using [Grafana Alloy](https://grafana.com/docs/alloy) as your collector
+The Faro Exporter is an OpenTelemetry exporter that sends telemetry data to [Grafana Faro](https://grafana.com/oss/faro/), an open-source frontend application monitoring solution. This exporter supports both traces and logs in a single instance with automatic session management, allowing you to monitor your iOS applications using either Grafana Cloud or your own self-hosted infrastructure using [Grafana Alloy](https://grafana.com/docs/alloy) as your collector.
+
+> **Note:** [Grafana Frontend Observability](https://grafana.com/docs/grafana-cloud/monitor-applications/frontend-observability/) is built for web applications — there is currently no official mobile observability product from Grafana.
+>
+> This SDK was created as a proof-of-concept to explore mobile telemetry collection using OpenTelemetry and the Faro protocol. It can work well for basic use cases, but please be aware that it is maintained on a best-effort basis and does not come with official support or SLAs.
+>
+> **What you can expect:**
+> - Session tracking and error monitoring may work similarly to web applications
+> - Telemetry data is stored in Loki/Tempo, allowing you to build custom dashboards and run queries in Grafana
+> - Data can be forwarded to [Grafana Alloy](https://grafana.com/docs/alloy/latest/) (with faro receiver enabled) and routed to any observability backend of your choice
+>
+> If you run into issues, feel free to open a GitHub issue — we'll do our best to help on a best-effort basis, but please understand this project is not actively maintained as a product.
 
 ## Installation
 
