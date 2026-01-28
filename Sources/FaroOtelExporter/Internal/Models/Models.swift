@@ -58,7 +58,7 @@ struct FaroPayload: Encodable {
         }
     }
 
-    // Helper for basic value types
+    /// Helper for basic value types
     private func encodeJSONValue(_ value: Any, forKey key: DynamicCodingKey, into container: inout KeyedEncodingContainer<DynamicCodingKey>) throws {
         if let stringValue = value as? String {
             try container.encode(stringValue, forKey: key)
@@ -74,7 +74,7 @@ struct FaroPayload: Encodable {
         // Note: Arrays and Dictionaries are handled separately before calling this helper
     }
 
-    // Helper for trace/span ID encoding
+    /// Helper for trace/span ID encoding
     private func encodeTraceSpanID(_ value: Any, forKey key: DynamicCodingKey, into container: inout KeyedEncodingContainer<DynamicCodingKey>) throws -> Bool {
         // Check various capitalization and formats
         guard key.stringValue.lowercased() == "traceid" || key.stringValue.lowercased() == "spanid" || key.stringValue.lowercased() == "parentspanid" else {
@@ -102,7 +102,7 @@ struct FaroPayload: Encodable {
         return false // Couldn't encode as trace/span ID
     }
 
-    // Helper for span kind encoding
+    /// Helper for span kind encoding
     private func encodeSpanKind(_ value: Any, forKey key: DynamicCodingKey, into container: inout KeyedEncodingContainer<DynamicCodingKey>) throws -> Bool {
         guard key.stringValue == "kind" else {
             return false // Not the span kind key
@@ -126,7 +126,7 @@ struct FaroPayload: Encodable {
         return false // Couldn't encode as span kind
     }
 
-    // Helper method to encode JSON objects with proper nesting
+    /// Helper method to encode JSON objects with proper nesting
     private func encodeJSONObject(_ jsonObject: [String: Any], into container: inout KeyedEncodingContainer<DynamicCodingKey>) throws {
         for (key, value) in jsonObject {
             let codingKey = DynamicCodingKey(key: key)
@@ -151,7 +151,7 @@ struct FaroPayload: Encodable {
         }
     }
 
-    // Helper method to encode JSON arrays with proper nesting
+    /// Helper method to encode JSON arrays with proper nesting
     private func encodeJSONArray(_ array: [Any], into container: inout UnkeyedEncodingContainer) throws {
         for value in array {
             if let stringValue = value as? String {

@@ -288,7 +288,7 @@ final class FaroManagerTests: XCTestCase {
 
     // MARK: - Session Change Tests
 
-    func testSessionChangeCallback() {
+    func testSessionChangeCallback() throws {
         // First, wait for the initial session start event from the FaroManager initialization
         let initialExpectation = XCTestExpectation(description: "Wait for initial session start event")
         mockTransport.sendExpectation = initialExpectation
@@ -326,7 +326,7 @@ final class FaroManagerTests: XCTestCase {
         )
 
         // Get the latest payload (from the session change)
-        let latestPayload = mockTransport.sentPayloads.last!
+        let latestPayload = try XCTUnwrap(mockTransport.sentPayloads.last)
         XCTAssertNotNil(latestPayload.events, "Events should not be nil")
 
         // Verify there's a session_start event in the latest payload
