@@ -12,7 +12,7 @@ final class FaroEndpointConfigurationExtensionTests: XCTestCase {
         let config = try FaroEndpointConfiguration.create(from: options)
 
         // Then
-        XCTAssertEqual(config.collectorUrl, URL(string: "https://example.com/api/v1/12345abcdef")!)
+        XCTAssertEqual(config.collectorUrl, URL(string: "https://example.com/api/v1/12345abcdef"))
         XCTAssertEqual(config.apiKey, "12345abcdef")
     }
 
@@ -74,7 +74,7 @@ final class FaroEndpointConfigurationExtensionTests: XCTestCase {
         let config = try FaroEndpointConfiguration.create(from: options)
 
         // Then
-        XCTAssertEqual(config.collectorUrl, URL(string: "https://example.com/api/v1/path/subpath/apikey123")!)
+        XCTAssertEqual(config.collectorUrl, URL(string: "https://example.com/api/v1/path/subpath/apikey123"))
         XCTAssertEqual(config.apiKey, "apikey123")
     }
 

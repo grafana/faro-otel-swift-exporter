@@ -96,7 +96,7 @@ final class FaroSpanAdapterTests: XCTestCase {
         verifyAttribute(key: "key3", in: foundAttributesMap, hasBoolValue: true)
     }
 
-    func testToProtoResourceSpans_MultipleSpans() {
+    func testToProtoResourceSpans_MultipleSpans() throws {
         // Given
         let sessionId = "test-session-id"
         let spans = [
@@ -131,9 +131,9 @@ final class FaroSpanAdapterTests: XCTestCase {
         XCTAssertTrue(spanAttributeMap.keys.contains("span2"), "span2 should exist in result")
         XCTAssertTrue(spanAttributeMap.keys.contains("span3"), "span3 should exist in result")
 
-        verifyAttribute(key: "span", in: spanAttributeMap["span1"]!, hasStringValue: "1")
-        verifyAttribute(key: "span", in: spanAttributeMap["span2"]!, hasStringValue: "2")
-        verifyAttribute(key: "span", in: spanAttributeMap["span3"]!, hasStringValue: "3")
+        try verifyAttribute(key: "span", in: XCTUnwrap(spanAttributeMap["span1"]), hasStringValue: "1")
+        try verifyAttribute(key: "span", in: XCTUnwrap(spanAttributeMap["span2"]), hasStringValue: "2")
+        try verifyAttribute(key: "span", in: XCTUnwrap(spanAttributeMap["span3"]), hasStringValue: "3")
     }
 
     // MARK: - Helpers

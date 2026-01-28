@@ -2,7 +2,7 @@
 import XCTest
 
 final class FaroExporterOptionsTests: XCTestCase {
-    // Test that options with same values are equal and have the same hash value
+    /// Test that options with same values are equal and have the same hash value
     func testHashableConformance() {
         // Given
         let options1 = FaroExporterOptions(
@@ -37,7 +37,7 @@ final class FaroExporterOptionsTests: XCTestCase {
         XCTAssertNotEqual(options1.hashValue, options3.hashValue, "Different options should have different hash values")
     }
 
-    // Test that options work correctly as dictionary keys
+    /// Test that options work correctly as dictionary keys
     func testOptionsDictionaryKey() {
         // Given
         let options1 = FaroExporterOptions(
@@ -68,7 +68,7 @@ final class FaroExporterOptionsTests: XCTestCase {
         XCTAssertEqual(optionsDict[options2], "Instance 2", "Should retrieve correct value for options2")
     }
 
-    // Test that nil values are handled correctly
+    /// Test that nil values are handled correctly
     func testHashableWithNilValues() {
         // Given
         let options1 = FaroExporterOptions(

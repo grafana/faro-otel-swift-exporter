@@ -32,7 +32,6 @@ enum FaroSpanAdapter {
         }
 
         // Use the standard SpanAdapter to convert the enriched spans
-        let result = SpanAdapter.toProtoResourceSpans(spanDataList: enrichedSpans)
-        return result
+        return SpanAdapter.toProtoResourceSpans(spanDataList: enrichedSpans)
     }
 }

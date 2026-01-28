@@ -20,7 +20,7 @@ final class FaroTransportTests: XCTestCase {
             endpointConfiguration: endpointConfiguration,
             sessionManager: sessionManager,
             httpClient: httpClient,
-            logger: MockFaroLogger(),
+            logger: MockFaroLogger()
         )
     }
 

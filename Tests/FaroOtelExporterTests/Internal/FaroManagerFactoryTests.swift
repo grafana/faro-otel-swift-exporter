@@ -2,7 +2,7 @@
 import XCTest
 
 final class FaroManagerFactoryTests: XCTestCase {
-    // Test that the factory returns the same instance when called multiple times with the same options
+    /// Test that the factory returns the same instance when called multiple times with the same options
     func testGetInstanceReturnsSameInstance() throws {
         // Given
         let options = FaroExporterOptions(
@@ -19,7 +19,7 @@ final class FaroManagerFactoryTests: XCTestCase {
         XCTAssertTrue(instance1 === instance2, "Factory should return the same instance for the same options")
     }
 
-    // Test that the factory returns different instances when called with different options
+    /// Test that the factory returns different instances when called with different options
     func testGetInstanceReturnsDifferentInstancesWithDifferentOptions() throws {
         // Given
         let options1 = FaroExporterOptions(
@@ -40,7 +40,7 @@ final class FaroManagerFactoryTests: XCTestCase {
         XCTAssertFalse(instance1 === instance2, "Factory should return different instances for different options")
     }
 
-    // Test that options with the same values are considered equal
+    /// Test that options with the same values are considered equal
     func testSameOptionsAreEqual() throws {
         // Given
         let options1 = FaroExporterOptions(

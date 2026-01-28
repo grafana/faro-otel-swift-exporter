@@ -7,7 +7,7 @@ import XCTest
 final class FaroOtelLogRecordAdapterTests: XCTestCase {
     var mockDateProvider: MockDateProvider!
 
-    // Test date: February 13, 2009 23:31:30 UTC
+    /// Test date: February 13, 2009 23:31:30 UTC
     let testDate: Date = {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -197,7 +197,7 @@ final class FaroOtelLogRecordAdapterTests: XCTestCase {
         XCTAssertEqual(result.logs[0].message, "")
     }
 
-    func testChangeUserLogCreatesEvent() {
+    func testChangeUserLogCreatesEvent() throws {
         // Given
         let logRecord = ReadableLogRecord(
             resource: Resource(),
@@ -225,7 +225,7 @@ final class FaroOtelLogRecordAdapterTests: XCTestCase {
         XCTAssertEqual(event.timestamp, testISOString)
         XCTAssertEqual(event.attributes.count, 0)
 
-        let user = result.user!
+        let user = try XCTUnwrap(result.user)
         XCTAssertEqual(user.username, "testuser")
         XCTAssertEqual(user.id, "12345")
         XCTAssertEqual(user.email, "user@example.com")

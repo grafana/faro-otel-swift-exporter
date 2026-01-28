@@ -3,7 +3,7 @@ import OpenTelemetrySdk
 
 /// Factory class responsible for creating and managing instances of FaroManager per unique configuration
 final class FaroManagerFactory {
-    // Dictionary to store FaroManager instances by their options
+    /// Dictionary to store FaroManager instances by their options
     private static var managers: [FaroExporterOptions: FaroManager] = [:]
 
     private init() {}
