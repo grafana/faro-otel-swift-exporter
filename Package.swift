@@ -13,7 +13,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/open-telemetry/opentelemetry-swift", from: "1.15.0"),
+        .package(url: "https://github.com/open-telemetry/opentelemetry-swift", from: "2.4.1"),
     ],
     targets: [
         .target(
